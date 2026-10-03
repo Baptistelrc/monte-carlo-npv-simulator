@@ -127,7 +127,7 @@ alone moves to its P90 (16,922 units).
 With [conda](https://docs.conda.io):
 
 ```bash
-conda env create -f environment.yml
+conda env create -f conda/environment.yml
 conda activate montecarlo
 streamlit run app.py      # opens the dashboard in the browser
 pytest                    # runs the tests
@@ -150,6 +150,8 @@ validate.py               Python vs Excel comparison
 docs/validation.md        comparison tables
 docs/methodology.md       method, choices and limits (in French)
 excel/                    our original Excel model
+conda/environment.yml     conda environment for local development
+requirements.txt          pinned versions, used by Streamlit Community Cloud
 ```
 
 ## Limitations
@@ -184,8 +186,9 @@ The model is deliberately simple. Its main limits:
 The app is ready for [Streamlit Community Cloud](https://streamlit.io/cloud)
 but is not deployed. To deploy it: push the repository to GitHub, create an
 app from it on Community Cloud and choose `app.py` as the entry point.
-Community Cloud installs the dependencies from `environment.yml`, which it
-reads before `requirements.txt` when both exist.
+Community Cloud installs the pinned versions of `requirements.txt`. The conda
+file is kept in `conda/` on purpose: at the repository root it would take
+priority over `requirements.txt`. Choose Python 3.13 in the advanced settings.
 
 ## How this project was built
 

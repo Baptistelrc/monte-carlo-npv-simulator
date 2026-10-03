@@ -94,6 +94,10 @@ def test_reading_can_be_switched_to_french(app):
     app.radio(key="reading_language").set_value("FR")
     app.run()
     reading = app.markdown[-1].value
-    assert "ne couvre pas son coût du capital" in reading
+    assert "ne couvre pas son cost of capital" in reading
     assert "ce n'est pas une sensibilité" in reading
-    assert "marge d'erreur à 95 %" in reading
+    assert "margin of error à 95 %" in reading
+    # Finance terms stay in English and inputs keep their dashboard labels.
+    assert "**Demand**" in reading
+    for french_term in ("VAN", "coût du capital", "écart-type", "la demande", "le prix"):
+        assert french_term not in reading

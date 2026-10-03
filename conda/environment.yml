@@ -1,0 +1,16 @@
+# Conda environment for the Monte Carlo valuation tool (local development).
+# It is kept out of the repository root so that Streamlit Community Cloud
+# installs the pinned versions of requirements.txt instead.
+# Create it with:   conda env create -f conda/environment.yml
+# Activate it with: conda activate montecarlo
+name: montecarlo
+channels:
+  - conda-forge
+dependencies:
+  - python=3.13
+  - numpy
+  - scipy
+  - pandas
+  - plotly
+  - streamlit
+  - pytest

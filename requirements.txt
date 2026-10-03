@@ -1,5 +1,5 @@
 # Used by pip (for example on Streamlit Community Cloud).
-# Local development uses environment.yml. Versions are those the tests ran with.
+# Local development uses conda/environment.yml. Versions are those the tests ran with.
 numpy==2.5.3
 scipy==1.18.1
 pandas==3.0.6

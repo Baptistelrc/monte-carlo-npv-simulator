@@ -8,9 +8,12 @@ are explained separately; sensitivity is not correlation.
 
 from montecarlo import stats
 
+# Same names as the labels of the dashboard, in both languages.
 INPUT_LABELS = {
-    "en": {"price": "price", "demand": "demand", "variable_cost": "variable cost", "fixed_costs": "fixed costs"},
-    "fr": {"price": "le prix", "demand": "la demande", "variable_cost": "le coût variable", "fixed_costs": "les coûts fixes"},
+    "price": "Price",
+    "demand": "Demand",
+    "variable_cost": "Variable cost",
+    "fixed_costs": "Fixed costs",
 }
 
 
@@ -122,7 +125,7 @@ def english_lines(summary, base_npv, tornado_table, scenario):
         first = tornado_table.iloc[0]
         lines.append(
             f"**Sensitivity:** the input that moves the NPV the most is "
-            f"**{INPUT_LABELS['en'][first['input']]}**: the NPV goes from "
+            f"**{INPUT_LABELS[first['input']]}**: the NPV goes from "
             f"{euros(first['npv_at_p10'], 'en')} to {euros(first['npv_at_p90'], 'en')} when it "
             "moves from its P10 to its P90, the other inputs staying at their base case value. "
             "This ranking combines how strongly the NPV reacts to an input and how uncertain "
@@ -144,85 +147,86 @@ def english_lines(summary, base_npv, tornado_table, scenario):
 
 
 def french_lines(summary, base_npv, tornado_table, scenario):
+    """French sentences; finance and statistics terms stay in English."""
     f = key_figures(summary, base_npv, scenario, "fr")
     lines = []
 
     # 1. Level of the mean NPV, with its margin of error.
     if f["mean_is_uncertain"]:
         verdict = (
-            "Zéro est dans la marge d'erreur : la simulation ne permet pas de dire si la "
-            "NPV moyenne est positive ou négative."
+            "Zéro est dans la margin of error : la simulation ne permet pas de dire si la "
+            "mean NPV est positive ou négative."
         )
     elif f["mean_is_negative"]:
         verdict = (
-            f"En moyenne, le projet ne couvre pas son coût du capital (discount rate de "
+            f"En moyenne, le projet ne couvre pas son cost of capital (discount rate de "
             f"{f['rate']} %) ; cela ne veut pas dire qu'il perd de l'argent."
         )
     else:
         verdict = (
-            f"En moyenne, le projet crée de la valeur au-delà de son coût du capital "
+            f"En moyenne, le projet crée de la valeur au-delà de son cost of capital "
             f"(discount rate de {f['rate']} %)."
         )
     lines.append(
-        f"**NPV moyenne : {f['mean']} ± {f['mean_margin']}** "
-        f"(marge d'erreur à 95 %, {f['n']} itérations). {verdict}"
+        f"**Mean NPV : {f['mean']} ± {f['mean_margin']}** "
+        f"(margin of error à 95 %, {f['n']} itérations). {verdict}"
     )
 
     # 2. Mean versus base case: a gap in euros, never in percent.
     if f["gap_is_significant"]:
         causes = [
-            "la moyenne de chaque input, qui diffère de sa valeur base case quand la "
+            "la mean de chaque input, qui diffère de sa valeur base case quand la "
             "distribution est asymétrique ou décalée"
         ]
         if f["has_capacity"]:
-            causes.append("le plafond de capacité, qui coupe les ventes quand la demande est forte")
+            causes.append("la capacity, qui plafonne le volume vendu quand la Demand est forte")
         if f["rho"] != 0:
-            causes.append("la corrélation prix–demande")
+            causes.append("la corrélation Price–Demand")
         lines.append(
-            f"**Base case : {f['base']}.** La NPV moyenne s'en écarte de {f['gap']}. Le base "
-            f"case utilise la valeur de référence de chaque input, pas sa moyenne ; l'écart "
+            f"**Base case : {f['base']}.** La mean NPV s'en écarte de {f['gap']}. Le base "
+            f"case utilise la valeur de référence de chaque input, pas sa mean ; l'écart "
             f"vient de : {' ; '.join(causes)}."
         )
     else:
         lines.append(
-            f"**Base case : {f['base']}.** L'écart avec la NPV moyenne ({f['gap']}) est "
-            "inférieur à la marge d'erreur : il n'est pas significatif."
+            f"**Base case : {f['base']}.** L'écart avec la mean NPV ({f['gap']}) est "
+            "inférieur à la margin of error : il n'est pas significatif."
         )
 
     # 3. Probability of not covering the cost of capital.
     lines.append(
         f"**P(NPV < 0) : {f['prob']} % ± {f['prob_margin']} pt.** Dans cette part des "
-        "scénarios, le projet ne couvre pas son coût du capital."
+        "scénarios, le projet ne couvre pas son cost of capital."
     )
 
     # 4. Dispersion, kept separate from the level of the mean.
     lines.append(
         f"**Dispersion :** 90 % des scénarios donnent une NPV entre {f['p5']} (P5) et "
-        f"{f['p95']} (P95) ; standard deviation de {f['sd']}. La médiane (P50) est de {f['p50']}. "
-        "La dispersion mesure le risque autour de la moyenne ; elle n'explique pas le niveau "
-        "de la moyenne."
+        f"{f['p95']} (P95) ; standard deviation de {f['sd']}. La median (P50) est de {f['p50']}. "
+        "La dispersion mesure le risque autour de la mean ; elle n'explique pas le niveau "
+        "de la mean."
     )
 
     # 5. Sensitivity (tornado), not to be confused with correlation.
     if len(tornado_table) > 0:
         first = tornado_table.iloc[0]
         lines.append(
-            f"**Sensibilité :** l'input qui fait le plus bouger la NPV est "
-            f"**{INPUT_LABELS['fr'][first['input']]}** : la NPV passe de "
+            f"**Sensibilité (tornado) :** l'input qui fait le plus bouger la NPV est "
+            f"**{INPUT_LABELS[first['input']]}** : la NPV passe de "
             f"{euros(first['npv_at_p10'], 'fr')} à {euros(first['npv_at_p90'], 'fr')} quand cet "
             "input va de son P10 à son P90, les autres restant au base case. Ce classement "
             "combine la force de réaction de la NPV à un input et l'incertitude sur cet input."
         )
     if f["rho"] != 0:
         effect = (
-            "Négative, elle joue comme un natural hedge (un prix bas va avec une demande "
+            "Négative, elle joue comme un natural hedge (un Price bas va avec une Demand "
             "élevée) et tend à réduire la dispersion."
             if f["rho"] < 0
-            else "Positive, elle fait varier prix et demande dans le même sens et tend à "
+            else "Positive, elle fait varier Price et Demand dans le même sens et tend à "
             "augmenter la dispersion."
         )
         lines.append(
-            f"**Corrélation prix–demande (ρ = {number(f['rho'], 2, 'fr')}) :** elle décrit "
+            f"**Corrélation Price–Demand (ρ = {number(f['rho'], 2, 'fr')}) :** elle décrit "
             f"comment les deux variables bougent ensemble ; ce n'est pas une sensibilité. {effect}"
         )
     return lines
