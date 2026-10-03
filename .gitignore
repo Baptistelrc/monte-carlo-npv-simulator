@@ -13,3 +13,6 @@ __pycache__/
 
 # Streamlit secrets (never commit)
 .streamlit/secrets.toml
+
+# Editor settings
+.vscode/
