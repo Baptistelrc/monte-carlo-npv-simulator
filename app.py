@@ -9,6 +9,7 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from montecarlo import distributions, model, stats
+from montecarlo.reading import reading
 from montecarlo.simulation import DEFAULT_SEED, INPUT_NAMES, npv_from_inputs, run_simulation
 from scenarios import lesson2, lesson3, lesson4
 
@@ -317,106 +318,6 @@ def statistics_table(summary, npvs, base_npv):
     return pd.DataFrame(rows, columns=["Statistic", "Value", "95 % margin of error"])
 
 
-def fr_euros(value):
-    """French number format: 1 234 567 €, with a true minus sign."""
-    text = f"{abs(value):,.0f}".replace(",", " ")
-    return f"{'−' if round(value) < 0 else ''}{text} €"
-
-
-def fr_number(value, decimals=1):
-    """French number format: 100 000 or 55,5."""
-    text = f"{value:,.{decimals}f}"
-    return text.replace(",", " ").replace(".", ",").replace("-", "−")
-
-
-def french_reading(summary, base_npv, tornado_table, scenario):
-    """Short reading of the results, in French, following our finance rules."""
-    mean = summary["mean"]
-    mean_margin = stats.margin_95(summary["se_mean"])
-    prob = summary["prob_negative"] * 100
-    prob_margin = stats.margin_95(summary["se_prob_negative"]) * 100
-    rate = fr_number(scenario["discount_rate"] * 100, 1)
-    rho = scenario["correlations"][("price", "demand")]
-    lines = []
-
-    # 1. Level of the mean NPV, with its margin of error.
-    if abs(mean) <= mean_margin:
-        verdict = (
-            "Zéro est dans la marge d'erreur : la simulation ne permet pas de dire si la "
-            "NPV moyenne est positive ou négative."
-        )
-    elif mean < 0:
-        verdict = (
-            f"En moyenne, le projet ne couvre pas son coût du capital (discount rate de {rate} %) ; "
-            "cela ne veut pas dire qu'il perd de l'argent."
-        )
-    else:
-        verdict = (
-            f"En moyenne, le projet crée de la valeur au-delà de son coût du capital "
-            f"(discount rate de {rate} %)."
-        )
-    lines.append(
-        f"**NPV moyenne : {fr_euros(mean)} ± {fr_euros(mean_margin)}** "
-        f"(marge d'erreur à 95 %, {fr_number(summary['n'], 0)} itérations). {verdict}"
-    )
-
-    # 2. Mean versus base case: a gap in euros, never in percent.
-    gap = mean - base_npv
-    if abs(gap) <= mean_margin:
-        lines.append(
-            f"**Base case : {fr_euros(base_npv)}.** L'écart avec la NPV moyenne "
-            f"({fr_euros(gap)}) est inférieur à la marge d'erreur : il n'est pas significatif."
-        )
-    else:
-        causes = ["la moyenne de chaque input, qui diffère de sa valeur base case quand la distribution est asymétrique ou décalée"]
-        if scenario["capacity"] is not None:
-            causes.append("le plafond de capacité, qui coupe les ventes quand la demande est forte")
-        if rho != 0:
-            causes.append("la corrélation prix–demande")
-        lines.append(
-            f"**Base case : {fr_euros(base_npv)}.** La NPV moyenne s'en écarte de "
-            f"{fr_euros(gap)}. Le base case utilise la valeur de référence de chaque input, "
-            f"pas sa moyenne ; l'écart vient de : {' ; '.join(causes)}."
-        )
-
-    # 3. Probability of not covering the cost of capital.
-    lines.append(
-        f"**P(NPV < 0) : {fr_number(prob)} % ± {fr_number(prob_margin)} pt.** Dans cette part "
-        "des scénarios, le projet ne couvre pas son coût du capital."
-    )
-
-    # 4. Dispersion, kept separate from the level of the mean.
-    lines.append(
-        f"**Dispersion :** 90 % des scénarios donnent une NPV entre {fr_euros(summary['p5'])} (P5) "
-        f"et {fr_euros(summary['p95'])} (P95) ; standard deviation de {fr_euros(summary['sd'])}. "
-        f"La médiane (P50) est de {fr_euros(summary['p50'])}. La dispersion mesure le risque autour "
-        "de la moyenne ; elle n'explique pas le niveau de la moyenne."
-    )
-
-    # 5. Sensitivity (tornado), not to be confused with correlation.
-    if len(tornado_table) > 0:
-        first = tornado_table.iloc[0]
-        label = INPUTS[first["input"]][0]
-        lines.append(
-            f"**Sensibilité :** l'input qui fait le plus bouger la NPV est **{label}** : la NPV passe de "
-            f"{fr_euros(first['npv_at_p10'])} à {fr_euros(first['npv_at_p90'])} quand il va de son P10 "
-            "à son P90, les autres inputs restant au base case."
-        )
-    if rho != 0:
-        effect = (
-            "Négative, elle joue comme un natural hedge (un prix bas va avec une demande élevée) "
-            "et tend à réduire la dispersion."
-            if rho < 0
-            else "Positive, elle fait varier prix et demande dans le même sens et tend à "
-            "augmenter la dispersion."
-        )
-        lines.append(
-            f"**Corrélation prix–demande (ρ = {fr_number(rho, 2)}) :** elle décrit comment les deux "
-            f"variables bougent ensemble ; ce n'est pas une sensibilité. {effect}"
-        )
-    return "\n".join(f"- {line}" for line in lines)
-
-
 # ------------------------------------------------------------------- page
 
 
@@ -482,8 +383,10 @@ def main():
                 "their base case value. This is a sensitivity, not a correlation."
             )
 
-    st.subheader("Lecture des résultats")
-    st.markdown(french_reading(summary, base_npv, tornado_table, scenario))
+    st.session_state.setdefault("reading_language", "EN")
+    language = st.radio("Language of the reading", ["EN", "FR"], key="reading_language", horizontal=True)
+    st.subheader("Reading of the results" if language == "EN" else "Lecture des résultats")
+    st.markdown(reading(summary, base_npv, tornado_table, scenario, language.lower()))
 
     st.download_button(
         "Download the simulated draws (CSV)",

@@ -83,7 +83,16 @@ def test_invalid_inputs_show_a_clear_error(app, key, value, message):
     assert not app.metric  # no result is shown on invalid inputs
 
 
-def test_reading_follows_the_finance_rules(app):
+def test_reading_is_in_english_by_default(app):
+    reading = app.markdown[-1].value
+    assert "does not cover its cost of capital" in reading
+    assert "it is not a sensitivity" in reading
+    assert "95 % margin of error" in reading
+
+
+def test_reading_can_be_switched_to_french(app):
+    app.radio(key="reading_language").set_value("FR")
+    app.run()
     reading = app.markdown[-1].value
     assert "ne couvre pas son coût du capital" in reading
     assert "ce n'est pas une sensibilité" in reading
