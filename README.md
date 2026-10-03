@@ -1,5 +1,9 @@
 # Monte Carlo valuation of an investment project
 
+[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://monte-carlo-npv.streamlit.app/)
+
+**Live demo — no installation needed:** <https://monte-carlo-npv.streamlit.app/>
+
 A small tool that values an investment project under uncertainty. Instead of a
 single net present value (NPV), it simulates thousands of scenarios and shows
 the whole distribution of the NPV: its mean, its dispersion, and the
@@ -124,7 +128,11 @@ alone moves to its P90 (16,922 units).
 
 ## How to run it
 
-With [conda](https://docs.conda.io):
+**Online.** Open the [live demo](https://monte-carlo-npv.streamlit.app/). The app goes to
+sleep when nobody has visited it for a while (12 hours at the time of writing); one click
+on "Yes, get this app back up!" restarts it in a moment.
+
+**On your computer.** With [conda](https://docs.conda.io):
 
 ```bash
 conda env create -f conda/environment.yml
