@@ -1,0 +1,59 @@
+"""Monte Carlo simulation of the project NPV from a scenario.
+
+A scenario is a dictionary:
+
+    {
+        "name": "...",
+        "inputs": {            # one distribution spec per uncertain input
+            "price": {...}, "demand": {...},
+            "variable_cost": {...}, "fixed_costs": {...},
+        },
+        "capacity": 17000,     # or None: no capacity limit
+        "correlations": {("price", "demand"): -0.5},   # may be empty
+        "investment": 800000, "discount_rate": 0.10, "years": 5,
+    }
+"""
+
+import numpy as np
+import pandas as pd
+
+from montecarlo import correlation, distributions, model
+
+# Order of the inputs in the correlation matrix.
+INPUT_NAMES = ["price", "demand", "variable_cost", "fixed_costs"]
+
+DEFAULT_SEED = 42
+
+
+def run_simulation(scenario, n_iterations=5_000, seed=DEFAULT_SEED):
+    """Simulate the scenario; return one row per iteration (inputs and NPV)."""
+    rng = np.random.default_rng(seed)
+
+    matrix = correlation.build_correlation_matrix(
+        INPUT_NAMES, scenario.get("correlations", {})
+    )
+    uniforms = correlation.correlated_uniforms(rng, n_iterations, matrix)
+
+    # Each input: its own inverse CDF applied to its column of uniforms.
+    draws = {}
+    for column, name in enumerate(INPUT_NAMES):
+        distribution = distributions.from_spec(scenario["inputs"][name])
+        draws[name] = distribution.ppf(uniforms[:, column])
+
+    # Volume sold cannot exceed capacity.
+    capacity = scenario.get("capacity")
+    if capacity is None:
+        draws["volume"] = draws["demand"]
+    else:
+        draws["volume"] = np.minimum(draws["demand"], capacity)
+
+    draws["npv"] = model.npv(
+        volume=draws["volume"],
+        price=draws["price"],
+        variable_cost=draws["variable_cost"],
+        fixed_costs=draws["fixed_costs"],
+        investment=scenario["investment"],
+        discount_rate=scenario["discount_rate"],
+        years=scenario["years"],
+    )
+    return pd.DataFrame(draws)
