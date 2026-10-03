@@ -40,20 +40,26 @@ def run_simulation(scenario, n_iterations=5_000, seed=DEFAULT_SEED):
         distribution = distributions.from_spec(scenario["inputs"][name])
         draws[name] = distribution.ppf(uniforms[:, column])
 
-    # Volume sold cannot exceed capacity.
-    capacity = scenario.get("capacity")
-    if capacity is None:
-        draws["volume"] = draws["demand"]
-    else:
-        draws["volume"] = np.minimum(draws["demand"], capacity)
+    draws["volume"] = volume_sold(draws["demand"], scenario.get("capacity"))
+    draws["npv"] = npv_from_inputs(scenario, **{name: draws[name] for name in INPUT_NAMES})
+    return pd.DataFrame(draws)
 
-    draws["npv"] = model.npv(
-        volume=draws["volume"],
-        price=draws["price"],
-        variable_cost=draws["variable_cost"],
-        fixed_costs=draws["fixed_costs"],
+
+def volume_sold(demand, capacity):
+    """Volume sold cannot exceed capacity (None = no capacity limit)."""
+    if capacity is None:
+        return demand
+    return np.minimum(demand, capacity)
+
+
+def npv_from_inputs(scenario, price, demand, variable_cost, fixed_costs):
+    """NPV of the scenario's project for given values of the four inputs."""
+    return model.npv(
+        volume=volume_sold(demand, scenario.get("capacity")),
+        price=price,
+        variable_cost=variable_cost,
+        fixed_costs=fixed_costs,
         investment=scenario["investment"],
         discount_rate=scenario["discount_rate"],
         years=scenario["years"],
     )
-    return pd.DataFrame(draws)
