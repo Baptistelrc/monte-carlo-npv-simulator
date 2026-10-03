@@ -191,12 +191,15 @@ The model is deliberately simple. Its main limits:
 
 ## Deployment
 
-The app is ready for [Streamlit Community Cloud](https://streamlit.io/cloud)
-but is not deployed. To deploy it: push the repository to GitHub, create an
-app from it on Community Cloud and choose `app.py` as the entry point.
-Community Cloud installs the pinned versions of `requirements.txt`. The conda
-file is kept in `conda/` on purpose: at the repository root it would take
-priority over `requirements.txt`. Choose Python 3.13 in the advanced settings.
+The app is deployed on [Streamlit Community Cloud](https://streamlit.io/cloud)
+at <https://monte-carlo-npv.streamlit.app/>. The deployment uses:
+
+- `app.py` as the entry point;
+- `requirements.txt` for the dependencies (pinned versions);
+- Python 3.13, chosen in the advanced settings of Community Cloud.
+
+The conda file is kept in `conda/` on purpose: at the repository root it would
+take priority over `requirements.txt`.
 
 ## How this project was built
 
