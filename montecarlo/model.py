@@ -12,7 +12,7 @@ element is one simulated scenario, so 100,000 NPVs are computed in one call.
 
 import numpy as np
 
-# Base case of the case study (CLAUDE.md, section 6).
+# Base case of the case study.
 BASE_CASE = {
     "volume": 15_000,         # units per year
     "price": 50.0,            # EUR per unit

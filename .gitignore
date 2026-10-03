@@ -16,3 +16,6 @@ __pycache__/
 
 # Editor settings
 .vscode/
+
+# Private project instructions
+CLAUDE.md

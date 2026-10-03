@@ -100,7 +100,7 @@ def build_report():
 
         sections.append(
             f"## {scenario['name']}\n\n"
-            "**Excel reference from our notes** (rounded values of CLAUDE.md):\n\n"
+            "**Excel reference from our notes** (rounded values):\n\n"
             f"{comparison_table(lesson.EXCEL_NOTES, large, small, standard_errors)}\n\n"
             "**Excel run stored in the workbook** (last recalculation of "
             "`excel/monte carlo stage 1-4.xlsx`):\n\n"
