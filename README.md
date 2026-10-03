@@ -142,6 +142,18 @@ pytest                    # runs the tests
 python validate.py        # regenerates docs/validation.md
 ```
 
+**Without conda.** With Python 3.13, a virtual environment and pip:
+
+```bash
+python3.13 -m venv .venv
+source .venv/bin/activate          # on Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+streamlit run app.py               # opens the dashboard in the browser
+```
+
+`requirements.txt` only contains what the app needs. To run the tests as well,
+add `pip install pytest`.
+
 ## Project layout
 
 ```
