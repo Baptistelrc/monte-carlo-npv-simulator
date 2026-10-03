@@ -1,0 +1,14 @@
+# Conda environment for the Monte Carlo valuation tool.
+# Create it with:   conda env create -f environment.yml
+# Activate it with: conda activate montecarlo
+name: montecarlo
+channels:
+  - conda-forge
+dependencies:
+  - python=3.13
+  - numpy
+  - scipy
+  - pandas
+  - plotly
+  - streamlit
+  - pytest

@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+.ipynb_checkpoints/
+
+# macOS
+.DS_Store
+
+# Excel temporary lock files
+~$*.xlsx
+
+# Streamlit secrets (never commit)
+.streamlit/secrets.toml

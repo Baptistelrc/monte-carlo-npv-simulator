@@ -1,0 +1,6 @@
+# Used by Streamlit Community Cloud (pip). Local development uses environment.yml.
+numpy
+scipy
+pandas
+plotly
+streamlit
